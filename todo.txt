@@ -1,0 +1,15 @@
+ÖNCE  DTOLARI HAZIRLA!!
+
+1) bcrypt paketini kur 
+2) register servisini yaz
+   2.1) register servisi içerisinde kullanıcıdan aldığın şifreyi hashle (bcrpyt kullan)
+   2.2) user.password değerini DTOdan gelen değere değil de hashlenmiş şifreye eşitle 
+   2.3) userı kaydet
+3) login servisi yaz
+   3.1) login servisinde kullanıcı adı ile kullanıcıyı veritabanından çek
+   3.2) dtodan aldığın şifreyi tekrar hashle
+   3.3) hashlediğin değer ile veritabanından çektiğin kullanıcıya ait password değeri ;
+        3.3.1) aynı ise LOGIN SUCCESSFULL
+        3.3.2) eğer tutmuyor ise LOGIN REJECTED HATA FIRLAT
+
+
