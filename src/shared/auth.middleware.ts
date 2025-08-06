@@ -9,17 +9,17 @@ export class AuthMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     //req ---> gelen request;
     //response ---> response (client'a gidecek;
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization; //bearer 37dg7gbw
 
     if (!authHeader) {
       throw new UnauthorizedException('Authorization header is missing');
     }
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(' ')[1]; //bearer
     if (!token) {
       throw new UnauthorizedException('Token is missing');
     }
     const decoded = this.jwtService.decode(<string>token); //{username:username,role:role}
-    console.log("KULLANICI ROLÜ"  +decoded['role']);
+    console.log("ROLE: "  +decoded['role']);
     if(req.method=="POST" && decoded['role']!="admin"){
       throw new ForbiddenException('NO PERMISSION ');
     }

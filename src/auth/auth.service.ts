@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -21,28 +21,34 @@ export class AuthService {
   private readonly jwtservice:JwtService,
   ) { }
 
-
-
   async register(registerDto: RegisterDto) {
+  try {
     const existingUser = await this.userRepository.findOne({
       where: { username: registerDto.username },
     });
+    
     if (existingUser) {
-      throw new Error('kullanıcı zaten kayıtlı');
+      throw new ConflictException(' User already exists ');
     }
-    const hashedPassword = bcrypt.hashSync(registerDto.password, 10); // 10 rounds of hashing
+    
+    const hashedPassword = bcrypt.hashSync(registerDto.password, 10);
     const newUser = {
       username: registerDto.username,
-      password: hashedPassword, 
+      password: hashedPassword,
       email: registerDto.email,
       carPlate: registerDto.carPlate,
       role: registerDto.role,
-      
     };
+    
     await this.userRepository.save(newUser);
-
-    return 'kayıt oluştu';
+    return ' User registered successfully ';
+  } catch (error) {
+    if (error instanceof ConflictException) {
+      throw error;
+    }
+    throw new InternalServerErrorException(' Registration failed ');
   }
+}
 
 
 
@@ -59,11 +65,11 @@ export class AuthService {
         where: { username },
       });
       if (!user) {
-        throw new UnauthorizedException('Kullanıcı bulunamadı');
+        throw new UnauthorizedException(' User not found ');
       }
       const isPasswordValid = await bcrypt.compare(pass, user.password);
       if (!isPasswordValid) {
-        throw new Error('şifre yanlış');
+        throw new UnauthorizedException(' Invalid password ');
       }
       const payload = {
      username: username,
@@ -71,32 +77,40 @@ export class AuthService {
    }
       const access_token= await this.jwtservice.signAsync(payload)
 
-      return { message: 'giriş başarılı',access_token:access_token };
+      return { message: ' Login successful ',access_token:access_token };
      
 
     }
     catch (error) {
-      throw new Error('giriş başarısız');
+      throw new Error(' Login failed ');
     }
 
   }
 
-async changeRole(userId: number, role: string) {  
-  const user = await this.userRepository.findOne({ where: { id: userId } });
-  
-  if (!user) {
-    throw ('User not found');
+async changeRole(userId: number, role: string) {
+  try {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    
+    if (role === 'user') {
+      user.role = UserRole.USER;
+    } else if (role === 'admin') {
+      user.role = UserRole.ADMIN;
+    } else {
+      throw new BadRequestException('Invalid role');
+    }
+    
+    await this.userRepository.save(user);
+    return { message: 'Role changed successfully', user };
+  } catch (error) {
+    if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      throw error;
+    }
+    throw new InternalServerErrorException('Role change failed');
   }
-  if (role === 'user') {
-    user.role = UserRole.USER;
-  } else if (role === 'admin') {
-    user.role = UserRole.ADMIN;
-  } else {
-    throw ('Invalid role');
-  }
-  
-  await this.userRepository.save(user);
-  return { message: 'Role changed', user };
 }
 
 
@@ -104,27 +118,4 @@ async changeRole(userId: number, role: string) {
 
 
 
-
 }
-
-//   async changeRole(userId: number, role:string) {
-//   const user = await this.userRepository.findOne({ 
-//     where: { id: userId } 
-//   });
-  
-//   if (!user) {
-//     throw ('Kullanıcı bulunamadı');
-//   }
-
-//   const oldRole = user.role;
-//   user.role =
-//   await this.userRepository.save(user);
-  
-//   return { 
-//     message: 'Rol değişti',
-//     userId: user.id,
-//     username: user.username,
-//     oldRole: oldRole,
-//     newRole: user.role
-//   };
-// }

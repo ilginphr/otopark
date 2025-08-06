@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,76 +13,99 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
- async create(createUserDto: CreateUserDto) { 
-  const existingUser = await this.userRepository.findOne({
-    where: { username: createUserDto.username }
-  });
+ async create(createUserDto: CreateUserDto) {
+   try {
+     const existingUser = await this.userRepository.findOne({
+       where: { username: createUserDto.username }
+     });
+     if (existingUser) {
+       throw new ConflictException("User with this username already exists");
+     }
+     const hashedPassword = bcrypt.hashSync(createUserDto.password, 10); //14
+     const newUser = {
+       ...createUserDto,
+       password: hashedPassword,
+       role: createUserDto.role || UserRole.USER,
+     };
 
-  if (existingUser) {
-    throw new Error('Kullanıcı zaten kayıtlı');
+     const savedUser = await this.userRepository.save(newUser);
+
+     return { message: 'User has been created.', user: savedUser };
+   } catch (error) {
+     throw error;
+   }
+ }
+
+ async findAll() {
+   try {
+     const users = await this.userRepository.find({});
+
+     return {
+       message: 'Users listed successfully',
+       users,
+       total: users.length
+     };
+   } catch (error) {
+     throw error;
+   }
+ }
+  //swaggerda olmadı
+  async findOne(id: number) {
+  try {
+    const user = await this.userRepository.findOne({
+      where: { id }
+    });
+    if (!user) {
+      throw new NotFoundException('User cannot be found.'); 
+    }
+    return user;
+  } catch (error) {
+    throw error;
   }
-  const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
-
-  const newUser = {
-    ...createUserDto,
-    password: hashedPassword,
-    role: createUserDto.role || UserRole.USER,
-  };
-
-  const savedUser = await this.userRepository.save(newUser);
-  
-  return { message: 'Kullanıcı oluşturuldu', user: savedUser };
 }
 
-  async findAll() {
-    const users = await this.userRepository.find({
-    
-    });
-
-    return {
-      message: 'Kullanıcılar listelendi',
-      users,
-      total: users.length
-    };
-  }
-
-  findOne(id: number) {
-    return this.userRepository.findOne({
-      where: { id },
-    });
-  }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+  try {
     const user= await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new Error('Kullanıcı bulunamadı');
-    } 
+      throw new NotFoundException('User cannot be found.'); 
+    }
     if (updateUserDto.password) {
       updateUserDto.password = bcrypt.hashSync(updateUserDto.password, 10);
-    }   
+    }
     if (updateUserDto.email) {
       updateUserDto.email = updateUserDto.email.toLowerCase();
     }
     if (updateUserDto.username) {
       updateUserDto.username = updateUserDto.username.toLowerCase();
-    } 
+    }
     if (updateUserDto.carPlate) {
       updateUserDto.carPlate = updateUserDto.carPlate.toUpperCase();
-    }   
-
+    }
     await this.userRepository.update(id, updateUserDto);
     return {
-      message: 'Kullanıcı güncellendi',
+      message: 'User updated succesfully',
       user: await this.userRepository.findOne({ where: { id } }),
     };
+  } catch (error) {
+    throw error;
   }
+}
+
 
  async remove(id: number) {
-  const user = await this.userRepository.findOne({ where: { id } });
-  await this.userRepository.delete(id);
-
-  return { 
-    message: 'Kullanıcı başarıyla silindi', 
-  };
+  try {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User cannot be found.'); 
+    }
+    await this.userRepository.delete(id);
+    return {
+      message: 'User deleted succesfully',
+    };
+  } catch (error) {
+    throw error;
+  }
 }
 }
