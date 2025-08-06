@@ -5,6 +5,8 @@ import { OtoparkModule } from './otopark/otopark.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
+
 
 
 @Module({
@@ -17,8 +19,9 @@ import { AuthModule } from './auth/auth.module';
       port: 5432,
       entities: [`${__dirname}/**/*.entity{.ts,.js}`],
       username: 'postgres',
-      database: 'mydatabase',
-synchronize:true
+      password:'postgres',
+      database: 'otopark',
+      synchronize:true
     }),
     
  ],

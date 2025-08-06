@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User,UserRole } from 'src/users/entities/user.entity';
 import { UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 
 
@@ -17,6 +18,7 @@ export class AuthService {
 
   constructor(@InjectRepository(User)
   private readonly userRepository: Repository<User>,
+  private readonly jwtservice:JwtService,
   ) { }
 
 
@@ -63,15 +65,14 @@ export class AuthService {
       if (!isPasswordValid) {
         throw new Error('şifre yanlış');
       }
-      // Burada token oluşturma işlemi yapılabilir
-      // Örneğin JWT kullanabilirsiniz
-      // const token = this.jwtService.sign({ username: user.username });
-      // return { access_token: token };
-      
+      const payload = {
+     username: username,
+     role: user.role,
+   }
+      const access_token= await this.jwtservice.signAsync(payload)
 
-
-      console.log('giriş başarılı');
-      return { message: 'giriş başarılı' };
+      return { message: 'giriş başarılı',access_token:access_token };
+     
 
     }
     catch (error) {
