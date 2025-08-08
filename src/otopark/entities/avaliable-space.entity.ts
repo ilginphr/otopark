@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Otopark } from "./otopark.entity";
 
 @Entity("available_space") //her bir park yeri
@@ -8,10 +8,19 @@ export class AvailableSpace {
     @ManyToOne(() => Otopark, (otopark) => otopark.avaliableSpaces, {
   onDelete: 'CASCADE'
 })
-    @JoinColumn({ name: 'otopark_id' })  //SOR?? //foreign key 
+    @JoinColumn({ name: 'otopark_id' }) 
     otopark: Otopark;
     @Column({ type: 'boolean', default: true })
     isAvailable: boolean;
-    @Column({ type: 'int' })
+    @Column({ nullable: false })
     index: number; //her bir park yerinin indexi
+    
+    @Column({ type: 'varchar',nullable:true })
+    parkedusername: string;
+
+    @Column({ type: 'varchar',nullable:true })
+    carPlate: string; //carplate
+
+    @UpdateDateColumn({ nullable: true })
+    parkedAt: Date; //ne zaman park etti
 }

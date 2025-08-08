@@ -82,7 +82,7 @@ export class AuthService {
 
     }
     catch (error) {
-      throw new Error(' Login failed ');
+      throw new BadRequestException(' Login failed ');
     }
 
   }

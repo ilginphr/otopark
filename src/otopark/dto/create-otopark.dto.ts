@@ -24,4 +24,6 @@ export class CreateOtoparkDto {
     example: 50
   })
   availableSpaces: number;
+
+
 }

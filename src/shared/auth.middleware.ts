@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(private readonly jwtService:JwtService) {
+  constructor(private readonly jwtService: JwtService) {
   }
   use(req: Request, res: Response, next: NextFunction) {
     //req ---> gelen request;
@@ -19,8 +19,9 @@ export class AuthMiddleware implements NestMiddleware {
       throw new UnauthorizedException('Token is missing');
     }
     const decoded = this.jwtService.decode(<string>token); //{username:username,role:role}
-    console.log("ROLE: "  +decoded['role']);
-    if(req.method=="POST" && decoded['role']!="admin"){
+    req.body = {}
+    req.body['username'] = decoded['username']
+    if (req.method == "POST" && decoded['role'] != "admin") {
       throw new ForbiddenException('NO PERMISSION ');
     }
     next(); // eğer her şey yolundaysa servise devam et

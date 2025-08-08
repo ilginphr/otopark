@@ -65,28 +65,33 @@ export class UsersService {
 }
 
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async updateUser(id: number, updateUserDto: UpdateUserDto) {
   try {
     const user= await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('User cannot be found.'); 
     }
-    if (updateUserDto.password) {
-      updateUserDto.password = bcrypt.hashSync(updateUserDto.password, 10);
+//yeni obje oluşturdum-veri döndürmeler yeni obje üzerinden
+    const updatedData= { ...updateUserDto };
+    if (updatedData.password) {
+      updatedData.password = bcrypt.hashSync(updatedData.password, 10);
     }
-    if (updateUserDto.email) {
-      updateUserDto.email = updateUserDto.email.toLowerCase();
+    if (updatedData.email) {
+      updatedData.email = updatedData.email.toLowerCase();
     }
-    if (updateUserDto.username) {
-      updateUserDto.username = updateUserDto.username.toLowerCase();
+    if (updatedData.username) {
+      updatedData.username = updatedData.username.toLowerCase();
     }
-    if (updateUserDto.carPlate) {
-      updateUserDto.carPlate = updateUserDto.carPlate.toUpperCase();
+    if (updatedData.carPlate) {
+      updatedData.carPlate = updatedData.carPlate.toUpperCase();
     }
-    await this.userRepository.update(id, updateUserDto);
+    Object.assign(user, updatedData);
+    const updatedUser = await this.userRepository.save(user); // ✅ Bu güncel veriyi döndürür
+
+    console.log(updatedUser)
     return {
       message: 'User updated succesfully',
-      user: await this.userRepository.findOne({ where: { id } }),
+      user: updatedUser,
     };
   } catch (error) {
     throw error;

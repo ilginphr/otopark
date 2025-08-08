@@ -13,3 +13,20 @@
         3.3.2) eğer tutmuyor ise LOGIN REJECTED HATA FIRLAT
 
 
+
+
+
+
+
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+
+1) Park bitirme ve ücretlendirme kısımlarını yap 
+   tamamen serbestlik var, METHODLAR PATCH OLMAK ZORUNDA
+   ÖNCE DTOLARI HAZIRLA
+
+
+2) kullanıcıyı çek plakasını boş yere ata
+
+3) parktan çıkış fonksiyonu yaz
